@@ -48,7 +48,7 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
     private static int count = 0;
     private String where = "13_office";
     private final int scale = 40;
-    private final float ratio = 40 / 0.3f;                     // point per meter
+    private final float ratio = 40 / 0.3f;                     // point per m
     private final int[] geo_angles = {20, 110, 200, 290};
     private int[] rel_angles;
     private float[] cross_ranges;
