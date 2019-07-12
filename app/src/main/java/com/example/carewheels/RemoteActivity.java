@@ -73,7 +73,7 @@ public class RemoteActivity extends AppCompatActivity implements View.OnClickLis
         client.connect();
 
         topic_compressed = new Topic(client, "/compressed_repub", "sensor_msgs/CompressedImage");
-        topic_lidar = new Topic(client, "/laserScan_repub", "sensor_msgs/LaserScan");
+        topic_lidar = new Topic(client, "/laserScan_repub", " sensor_msgs/LaserScan");
         topic_joy = new Topic(client, "/joy_unity", "sensor_msgs/Joy");
 
         joy = new Joy();

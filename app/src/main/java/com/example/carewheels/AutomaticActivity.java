@@ -103,6 +103,7 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
             @Override
             public void run() {
                 initDraw();
+                topic_joy.advertise();
             }
         }, 1000);
 
@@ -140,7 +141,7 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
                 TimerTask timerTask = new TimerTask() {
                     @Override
                     public void run() {
-                        if (Math.abs(maf_heading.getFiltered() - goal_heading) < 2) {
+                        if (Math.abs(maf_heading.getFiltered() - goal_heading) < 10) {
                             joy.axes[0] = (float) 0;
                             joy.axes[1] = (float) 0;
                             topic_joy.publish(joy);
@@ -156,6 +157,9 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
                 break;
 
             case R.id.btn_back_automatic:
+                topic_heading.unsubscribe();
+                topic_lidar.unsubscribe();
+                topic_joy.unadvertise();
                 client.close();
                 finish();
                 break;
@@ -164,16 +168,17 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
 
     public double getGoalHeading() {
         float x1, y1, x2, y2;
-        double result;
-//        x1 = getPosition(where)[0];
-//        y1 = getPosition(where)[1];
-        x1 = 340;
-        y1 = 555;
+        double pre_result, result;
+        x1 = getPosition(where)[0];
+        y1 = getPosition(where)[1];
+//        x1 = 340;
+//        y1 = 555;
         x2 = goal_XY[0];
         y2 = goal_XY[1];
 
-        result = 40 - Math.toDegrees(Math.atan2((y1 - y2), (x2 - x1)));
-        if (result < 0) {
+        pre_result = Math.toDegrees(Math.atan2((y2 - y1), (x2 - x1)));
+        result = 45 + pre_result;
+        if(result < 0) {
             result += 360;
         }
 
@@ -257,6 +262,7 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
                 for (int i = 0; i < pts_15.length; i++) {
                     pts_scaled_15[i] = pts_15[i] * scale;
                 }
+//                canvas_default.drawPoint(340, 555, paint_red);
                 canvas_default.drawLines(pts_scaled_15, paint_red);
                 break;
         }
@@ -334,7 +340,7 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
             case R.id.rdb_15_office:
                 where = "15_office";
                 for (int j = 0; j < 4; j++) {
-                    geo_angles[j] = 90 * j + 40;
+                    geo_angles[j] = 90 * j + 45;
                 }
                 break;
         }
