@@ -17,7 +17,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import com.example.carewheels.dsp.MovingAverage;
@@ -32,26 +31,24 @@ import java.net.URI;
 import java.util.Timer;
 import java.util.TimerTask;
 
-
 public class AutomaticActivity extends AppCompatActivity implements View.OnClickListener, View.OnTouchListener, RadioGroup.OnCheckedChangeListener {
 
     private static final String TAG = "AA";
     private ImageView iv_lidar_automatic, iv_default_map, iv_position, iv_path;
     private Button btn_back_automatic, btn_subscribe_automatic, btn_start;
     private RadioGroup rdg_select_map;
-    private RadioButton rdb_13_office, rdb_15_office;
 
     private ROSBridgeClient client;
     private Topic topic_lidar, topic_heading, topic_joy;
     private Joy joy;
 
-    private static int count = 0;
     private String where = "13_office";
     private final int scale = 40;
     private final float ratio = 40 / 0.3f;                     // point per m
-    private final int[] geo_angles = {20, 110, 200, 290};
+    private int[] geo_angles;
     private int[] rel_angles;
-    private float[] cross_ranges;
+    private float[] goal_XY;
+    private double goal_heading;
 
     private MovingAverage maf_heading;
     private MovingAverage[] maf_ranges;
@@ -78,8 +75,6 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
         btn_start = findViewById(R.id.btn_start);
 
         rdg_select_map = findViewById(R.id.rdg_select_map);
-        rdb_13_office = findViewById(R.id.rdb_13_office);
-        rdb_15_office = findViewById(R.id.rdb_15_office);
 
         rdg_select_map.setOnCheckedChangeListener(this);
         btn_subscribe_automatic.setOnClickListener(this);
@@ -91,10 +86,11 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
         topic_joy = new Topic(client, "/joy_unity", "sensor_msgs/Joy");
 
         joy = new Joy();
+        joy.axes = new float[2];
 
+        geo_angles = new int[4];
         rel_angles = new int[4];
-        cross_ranges = new float[4];
-
+        goal_XY = new float[2];
         maf_heading = new MovingAverage(15);
         maf_ranges = new MovingAverage[4];
 
@@ -137,23 +133,26 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
                 break;
 
             case R.id.btn_start:
-                joy.axes = new float[2];
-                joy.axes[0] = (float) 0.5;
-                joy.axes[1] = (float) 0;
+                Log.d(TAG, "onClick: start!");
+                goal_heading = getGoalHeading();
+
                 final Timer timer = new Timer();
                 TimerTask timerTask = new TimerTask() {
                     @Override
                     public void run() {
-                        if (count < 10) {
+                        if (Math.abs(maf_heading.getFiltered() - goal_heading) < 2) {
+                            joy.axes[0] = (float) 0;
+                            joy.axes[1] = (float) 0;
                             topic_joy.publish(joy);
-                            count++;
-                        } else {
-                            count = 0;
                             timer.cancel();
+                        } else {
+                            joy.axes[0] = (float) 0.5;
+                            joy.axes[1] = (float) 0;
+                            topic_joy.publish(joy);
                         }
                     }
                 };
-                timer.schedule(timerTask, 0, 500);
+                timer.schedule(timerTask, 0, 50);
                 break;
 
             case R.id.btn_back_automatic:
@@ -161,6 +160,24 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
                 finish();
                 break;
         }
+    }
+
+    public double getGoalHeading() {
+        float x1, y1, x2, y2;
+        double result;
+//        x1 = getPosition(where)[0];
+//        y1 = getPosition(where)[1];
+        x1 = 340;
+        y1 = 555;
+        x2 = goal_XY[0];
+        y2 = goal_XY[1];
+
+        result = 40 - Math.toDegrees(Math.atan2((y1 - y2), (x2 - x1)));
+        if (result < 0) {
+            result += 360;
+        }
+
+        return result;
     }
 
     public void initDraw() {
@@ -293,8 +310,14 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
 
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
+
         clearPath();
-        canvas_path.drawCircle(motionEvent.getX(), motionEvent.getY(), 10, paint_blue);
+        goal_XY[0] = motionEvent.getX();
+        goal_XY[1] = motionEvent.getY();
+        canvas_path.drawCircle(goal_XY[0], goal_XY[1], 10, paint_blue);
+        Log.d(TAG, "onTouch: " + motionEvent.getX() + " / " + motionEvent.getY());
+        Log.d(TAG, "onTouch: " + getGoalHeading());
+
         iv_path.setImageBitmap(map_path);
         return false;
     }
@@ -304,9 +327,15 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
         switch (radioGroup.getCheckedRadioButtonId()) {
             case R.id.rdb_13_office:
                 where = "13_office";
+                for (int j = 0; j < 4; j++) {
+                    geo_angles[j] = 90 * j + 20;
+                }
                 break;
             case R.id.rdb_15_office:
                 where = "15_office";
+                for (int j = 0; j < 4; j++) {
+                    geo_angles[j] = 90 * j + 40;
+                }
                 break;
         }
         clearPath();

@@ -91,14 +91,14 @@ public class RemoteActivity extends AppCompatActivity implements View.OnClickLis
             case R.id.btn_subscribe_lidar:
                 if (!topic_lidar.is_subscribed) {
                     topic_lidar.subscribe();
-//                    topic_joy.advertise();
+                    topic_joy.advertise();
                     topic_lidar.is_subscribed = true;
                     iv_lidar.setVisibility(View.VISIBLE);
                     tv_lidar.setVisibility(View.INVISIBLE);
                     btn_subscribe_lidar.setText("LIDAR\n구독취소");
                 } else {
                     topic_lidar.unsubscribe();
-//                    topic_joy.unadvertise();
+                    topic_joy.unadvertise();
                     topic_lidar.is_subscribed = false;
                     iv_lidar.setVisibility(View.INVISIBLE);
                     tv_lidar.setVisibility(View.VISIBLE);
