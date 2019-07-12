@@ -138,14 +138,32 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
                 goal_heading = getGoalHeading();
 
                 final Timer timer = new Timer();
+                final Timer timer1 = new Timer();
+                final TimerTask timerTask1 = new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (getPosition(where)[1] - goal_XY[1] < 100) {
+                            timer1.cancel();
+                            joy.axes[0] = (float) 0;
+                            joy.axes[1] = (float) 0;
+                            topic_joy.publish(joy);
+                        } else {
+                            joy.axes[0] = (float) 0;
+                            joy.axes[1] = (float) 0.7;
+                            topic_joy.publish(joy);
+                        }
+                    }
+                };
+
                 TimerTask timerTask = new TimerTask() {
                     @Override
                     public void run() {
                         if (Math.abs(maf_heading.getFiltered() - goal_heading) < 10) {
                             joy.axes[0] = (float) 0;
-                            joy.axes[1] = (float) 0;
+                            joy.axes[1] = (float) 0.5;
                             topic_joy.publish(joy);
                             timer.cancel();
+                            timer1.schedule(timerTask1, 0, 100);
                         } else {
                             joy.axes[0] = (float) 0.5;
                             joy.axes[1] = (float) 0;
@@ -154,6 +172,8 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
                     }
                 };
                 timer.schedule(timerTask, 0, 50);
+
+
                 break;
 
             case R.id.btn_back_automatic:
@@ -176,7 +196,7 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
 
         pre_result = Math.toDegrees(Math.atan2((y2 - y1), (x2 - x1)));
         result = 45 + pre_result;
-        if(result < 0) {
+        if (result < 0) {
             result += 360;
         }
 
