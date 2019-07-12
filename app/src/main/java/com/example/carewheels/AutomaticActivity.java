@@ -262,6 +262,15 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
                 }
                 canvas_default.drawLines(pts_scaled_15, paint_red);
                 break;
+
+            case "15_hall":
+                float[] pts_hall = {1, 2, 17, 2, 17, 2, 17, 1, 17, 1, 22, 1, 22, 1, 22, 26, 22, 26, 1, 26, 1, 26, 1, 2};
+                float[] pts_scaled_hall = new float[pts_hall.length];
+                for (int i = 0; i < pts_hall.length; i++) {
+                    pts_scaled_hall[i] = pts_hall[i] * scale;
+                }
+                canvas_default.drawLines(pts_scaled_hall, paint_red);
+                break;
         }
         iv_default_map.setImageBitmap(map_default);
     }
@@ -302,6 +311,10 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
                 point[0] = (maf_ranges[2].getFiltered() * 560 + maf_ranges[0].getFiltered() * 40) / (maf_ranges[0].getFiltered() + maf_ranges[2].getFiltered());
                 point[1] = 1000 - ratio * maf_ranges[1].getFiltered();
                 break;
+            case "15_hall":
+                point[0] = 880 - ratio * maf_ranges[0].getFiltered();
+                point[1] = 1040 - ratio * maf_ranges[1].getFiltered();
+                break;
         }
         return point;
     }
@@ -336,6 +349,12 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
                 break;
             case R.id.rdb_15_office:
                 where = "15_office";
+                for (int j = 0; j < 4; j++) {
+                    geo_angles[j] = 90 * j + 45;
+                }
+                break;
+            case R.id.rdb_15_hall:
+                where = "15_hall";
                 for (int j = 0; j < 4; j++) {
                     geo_angles[j] = 90 * j + 45;
                 }

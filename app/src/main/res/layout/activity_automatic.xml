@@ -43,6 +43,12 @@
                     android:layout_height="wrap_content"
                     android:text="15F OFFICE" />
 
+                <RadioButton
+                    android:id="@+id/rdb_15_hall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="15F HALL    " />
+
             </RadioGroup>
 
         </LinearLayout>
