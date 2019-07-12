@@ -171,8 +171,6 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
         double pre_result, result;
         x1 = getPosition(where)[0];
         y1 = getPosition(where)[1];
-//        x1 = 340;
-//        y1 = 555;
         x2 = goal_XY[0];
         y2 = goal_XY[1];
 
@@ -262,7 +260,6 @@ public class AutomaticActivity extends AppCompatActivity implements View.OnClick
                 for (int i = 0; i < pts_15.length; i++) {
                     pts_scaled_15[i] = pts_15[i] * scale;
                 }
-//                canvas_default.drawPoint(340, 555, paint_red);
                 canvas_default.drawLines(pts_scaled_15, paint_red);
                 break;
         }

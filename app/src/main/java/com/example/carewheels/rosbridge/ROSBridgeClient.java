@@ -27,7 +27,6 @@ public class ROSBridgeClient extends WebSocketClient {
 
     private RemoteActivity remoteActivity;
     private AutomaticActivity automaticActivity;
-//    private AutomaticActivity automaticActivity;
 
     public ROSBridgeClient(URI serverUri, Context context) {
         super(serverUri);

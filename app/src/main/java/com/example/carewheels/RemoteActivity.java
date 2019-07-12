@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -73,10 +74,18 @@ public class RemoteActivity extends AppCompatActivity implements View.OnClickLis
         client.connect();
 
         topic_compressed = new Topic(client, "/compressed_repub", "sensor_msgs/CompressedImage");
-        topic_lidar = new Topic(client, "/laserScan_repub", " sensor_msgs/LaserScan");
+        topic_lidar = new Topic(client, "/laserScan_repub", "sensor_msgs/LaserScan");
         topic_joy = new Topic(client, "/joy_unity", "sensor_msgs/Joy");
 
         joy = new Joy();
+
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                topic_joy.advertise();
+            }
+        }, 1000);
 
     }
 
@@ -91,14 +100,12 @@ public class RemoteActivity extends AppCompatActivity implements View.OnClickLis
             case R.id.btn_subscribe_lidar:
                 if (!topic_lidar.is_subscribed) {
                     topic_lidar.subscribe();
-                    topic_joy.advertise();
                     topic_lidar.is_subscribed = true;
                     iv_lidar.setVisibility(View.VISIBLE);
                     tv_lidar.setVisibility(View.INVISIBLE);
                     btn_subscribe_lidar.setText("LIDAR\n구독취소");
                 } else {
                     topic_lidar.unsubscribe();
-                    topic_joy.unadvertise();
                     topic_lidar.is_subscribed = false;
                     iv_lidar.setVisibility(View.INVISIBLE);
                     tv_lidar.setVisibility(View.VISIBLE);
@@ -135,8 +142,6 @@ public class RemoteActivity extends AppCompatActivity implements View.OnClickLis
         byte[] data = buffer.array();
         Bitmap bitmap = BitmapFactory.decodeByteArray(data, buffer.arrayOffset(), buffer.readableBytes());
 
-//        Bitmap bitmap = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.length);
-
         iv_front_camera.setImageBitmap(bitmap);
     }
 
@@ -147,8 +152,6 @@ public class RemoteActivity extends AppCompatActivity implements View.OnClickLis
         float angle_min = msg.getAsJsonObject().get("angle_min").getAsFloat();
         float angle_max = msg.getAsJsonObject().get("angle_max").getAsFloat();
         float angle_increment = msg.getAsJsonObject().get("angle_increment").getAsFloat();
-
-//        Log.d(TAG, "drawLidar: " + angle_min + " / " + angle_max + " / " + angle_increment + " / " + ranges.size());
 
         Bitmap bitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
@@ -180,7 +183,6 @@ public class RemoteActivity extends AppCompatActivity implements View.OnClickLis
 
     @Override
     public void onMove(int angle, int strength) {
-        Log.d(TAG, "onMove: " + angle + " / " + strength);
         joy.axes = new float[2];
         joy.axes[0] = (float) (strength * Math.cos(Math.toRadians(angle))) / 100;
         joy.axes[1] = (float) (strength * Math.sin(Math.toRadians(angle))) / 100;
@@ -188,6 +190,7 @@ public class RemoteActivity extends AppCompatActivity implements View.OnClickLis
         try {
             topic_joy.publish(joy);
         } catch (WebsocketNotConnectedException e) {
+            Log.d(TAG, "client disconnected.");
         }
     }
 }
